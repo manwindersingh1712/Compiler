@@ -15,6 +15,7 @@ const runPython = (code, input) =>
             .filter((i) => !!i)
             .join(" & ")}) | python ${filename}`
         : `python ${filename}`,
+      { timeout: 5 * 1000 },
       (error, stdout) => {
         exec(`rm ${filename}`);
         resolve(
@@ -41,6 +42,7 @@ const runCpp = (code, input) =>
           .filter((i) => !!i)
           .join(" & ")}) | ./${outputFilename}`
         : `gcc ${filename} -o ${outputFilename} && ./${outputFilename}`,
+      { timeout: 5 * 1000 },
       (error, stdout, stderr) => {
         exec(`rm ${filename} ${outputFilename}`);
         resolve(stdout.toString() + ((error && error.message) || " "));

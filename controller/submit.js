@@ -43,7 +43,7 @@ const runCpp = (code, input) =>
         : `gcc ${filename} -o ${outputFilename} && ./${outputFilename}`,
       (error, stdout, stderr) => {
         exec(`rm ${filename} ${outputFilename}`);
-        resolve(stdout.toString() + (error && error.message));
+        resolve(stdout.toString() + (error && error.message) || " ");
       }
     );
   });

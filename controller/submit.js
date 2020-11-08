@@ -34,14 +34,15 @@ const runCpp = (code, input) =>
     fs.writeFileSync(filename, code);
     exec(
       input
-        ? `(${input
-            .split(/(\n| )/)
-            .map((i) => i.trim() && `echo ${i}`)
-            .filter((i) => !!i)
-            .join(' & ')}) | gcc ${filename} -o ${outputFilename} && ./${outputFilename}`
+        ? `
+        gcc ${filename} -o ${outputFilename} &&
+        (${input
+          .split(/(\n| )/)
+          .map((i) => i.trim() && `echo ${i}`)
+          .filter((i) => !!i)
+          .join(' & ')}) | ./${outputFilename}`
         : `gcc ${filename} -o ${outputFilename} && ./${outputFilename}`,
       (error, stdout, stderr) => {
-        console.log(error, stdout, stderr);
         exec(`rm ${filename} ${outputFilename}`);
         resolve(stdout.toString() || (error && error.message) || stderr.toString());
       },

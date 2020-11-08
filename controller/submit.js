@@ -1,10 +1,10 @@
-const { exec } = require('child_process');
-const uuid = require('uuid').v4;
-const fs = require('fs');
+const { exec } = require("child_process");
+const uuid = require("uuid").v4;
+const fs = require("fs");
 
 const runPython = (code, input) =>
   new Promise((resolve) => {
-    const filename = uuid() + '.py';
+    const filename = uuid() + ".py";
 
     fs.writeFileSync(filename, code);
     exec(
@@ -13,23 +13,22 @@ const runPython = (code, input) =>
             .split(/(\n| )/)
             .map((i) => i.trim() && `echo ${i}`)
             .filter((i) => !!i)
-            .join(' & ')}) | python ${filename}`
+            .join(" & ")}) | python ${filename}`
         : `python ${filename}`,
-      (error, stdout, stderr) => {
+      (error, stdout) => {
         exec(`rm ${filename}`);
         resolve(
-          stdout.toString() ||
-            (error && error.message.split('<module>')[1].trim()) ||
-            stderr.toString(),
+          stdout.toString() +
+            ((error && error.message.split("<module>")[1].trim()) || " ")
         );
-      },
+      }
     );
   });
 
 const runCpp = (code, input) =>
   new Promise((resolve) => {
     const outputFilename = uuid();
-    const filename = outputFilename + '.cpp';
+    const filename = outputFilename + ".cpp";
 
     fs.writeFileSync(filename, code);
     exec(
@@ -40,26 +39,27 @@ const runCpp = (code, input) =>
           .split(/(\n| )/)
           .map((i) => i.trim() && `echo ${i}`)
           .filter((i) => !!i)
-          .join(' & ')}) | ./${outputFilename}`
+          .join(" & ")}) | ./${outputFilename}`
         : `gcc ${filename} -o ${outputFilename} && ./${outputFilename}`,
       (error, stdout, stderr) => {
         exec(`rm ${filename} ${outputFilename}`);
-        resolve(stdout.toString() || (error && error.message) || stderr.toString());
-      },
+        resolve(stdout.toString() + (error && error.message));
+      }
     );
   });
 
 const langCompilerMap = {
   python: runPython,
-  cpp: runCpp,
+  c_cpp: runCpp,
 };
 
 exports.postSubmission = async (req, res, next) => {
-  const { code, lang, input = '0' } = req.body || {};
+  const { code, mode, input = "0" } = req.body || {};
 
-  const compiler = langCompilerMap[lang];
+  const compiler = langCompilerMap[mode];
 
-  if (!compiler) return res.status(402).send({ error: 'The lang is not supported.' });
+  if (!compiler)
+    return res.status(402).send({ error: "The lang is not supported." });
 
   res.send({ output: await compiler(code, input) });
 };

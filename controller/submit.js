@@ -13,8 +13,8 @@ const runPython = (code, input) =>
             .split(/(\n| )/)
             .map((i) => i.trim() && `echo ${i}`)
             .filter((i) => !!i)
-            .join(" & ")}) | python ${filename}`
-        : `python ${filename}`,
+            .join(" & ")}) | python3 ${filename}`
+        : `python3 ${filename}`,
       { timeout: 5 * 1000 },
       (error, stdout) => {
         exec(`rm ${filename}`);
@@ -41,7 +41,7 @@ const runCpp = (code, input) =>
           .map((i) => i.trim() && `echo ${i}`)
           .filter((i) => !!i)
           .join(" & ")}) | ./${outputFilename}`
-        : `gcc ${filename} -o ${outputFilename} && ./${outputFilename}`,
+        : `gcc ${filename} -lstdc++ -o ${outputFilename} && ./${outputFilename}`,
       { timeout: 5 * 1000 },
       (error, stdout, stderr) => {
         exec(`rm ${filename} ${outputFilename}`);
@@ -50,9 +50,22 @@ const runCpp = (code, input) =>
     );
   });
 
+const runJavaScript = (code, input) =>
+  new Promise((resolve) => {
+    const filename = uuid() + ".js";
+    console.log(code);
+    fs.writeFileSync(filename, code);
+    exec(`node ${filename}`, { timeout: 5 * 1000 }, (error, stdout) => {
+      console.log(stdout)
+      exec(`rm ${filename}`);
+      resolve(stdout.toString() + ((error && error.message) || " "));
+    });
+  });
+
 const langCompilerMap = {
   python: runPython,
   c_cpp: runCpp,
+  javascript: runJavaScript,
 };
 
 exports.postSubmission = async (req, res, next) => {

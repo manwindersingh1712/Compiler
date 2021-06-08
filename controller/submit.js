@@ -1,4 +1,4 @@
-const { exec } = require("child_process");
+const { exec, spawn } = require("child_process");
 const uuid = require("uuid").v4;
 const fs = require("fs");
 
@@ -18,10 +18,7 @@ const runPython = (code, input) =>
       { timeout: 5 * 1000 },
       (error, stdout) => {
         exec(`rm ${filename}`);
-        resolve(
-          stdout.toString() +
-            ((error && error.message.split("<module>")[1].trim()) || " ")
-        );
+        resolve(stdout.toString() + ((error && error.message.trim()) || " "));
       }
     );
   });
@@ -35,7 +32,7 @@ const runCpp = (code, input) =>
     exec(
       input
         ? `
-        gcc ${filename} -o ${outputFilename} &&
+        gcc ${filename} -lstdc++ -o ${outputFilename} &&
         (${input
           .split(/(\n| )/)
           .map((i) => i.trim() && `echo ${i}`)
@@ -50,22 +47,9 @@ const runCpp = (code, input) =>
     );
   });
 
-const runJavaScript = (code, input) =>
-  new Promise((resolve) => {
-    const filename = uuid() + ".js";
-    console.log(code);
-    fs.writeFileSync(filename, code);
-    exec(`node ${filename}`, { timeout: 5 * 1000 }, (error, stdout) => {
-      console.log(stdout)
-      exec(`rm ${filename}`);
-      resolve(stdout.toString() + ((error && error.message) || " "));
-    });
-  });
-
 const langCompilerMap = {
   python: runPython,
   c_cpp: runCpp,
-  javascript: runJavaScript,
 };
 
 exports.postSubmission = async (req, res, next) => {

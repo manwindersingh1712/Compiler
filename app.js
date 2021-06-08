@@ -11,5 +11,20 @@ app.use(cors());
 app.use("/submissions", submitRoute);
 
 app.listen(8000, () => {
-  console.log("Server connected to 8000");
+  console.log(`
+  *************************************************************************************
+                     
+                                      COMPILER
+
+                              Server connected to 8000
+
+
+                          Initialized the C++ and Pyhton Compiler
+
+
+                     Copyright Ⓒ  by Manwinder Singh | All rights reserved
+
+  *************************************************************************************
+  
+  `);
 });
